@@ -58,6 +58,24 @@ parameters:
     label: vCloud Direct API URL
     description: Your vCloud Director API endpoint
     default: https://api.vcd.portal.skyscapecloud.com/api
+  os_auth_url:
+    type: string
+    label: OpenStack Auth URL
+    description: OpenStack Authentication API URL
+    default: https://cor00005.cni.ukcloud.com:13000/v2.0
+  os_project_name:
+    type: string
+    label: OpenStack Project Name
+    description: OpenStack Project Name
+  os_username:
+    type: string
+    label: OpenStack Username
+    description: OpenStack Username
+  os_password:
+    type: string
+    label: OpenStack password
+    description: OpenStack password
+    hidden: true
 
 resources:
   ssh_ext_secgroup:
@@ -101,6 +119,10 @@ resources:
       - name: vcd_password
       - name: vcd_vdc
       - name: vcd_url
+      - name: os_auth_url
+      - name: os_project_name
+      - name: os_username
+      - name: os_password
       outputs:
       - name: result
       config: { get_file: 'files/vcloudrc.sh' }
@@ -119,6 +141,10 @@ resources:
         vcd_password: { get_param: vcloud_password }
         vcd_vdc: { get_param: vcloud_vdc }
         vcd_url: { get_param: vcloud_url }
+        os_auth_url: { get_param: os_auth_url }
+        os_project_name: { get_param: os_auth_url }
+        os_username: { get_param: os_username }
+        os_password: { get_param: os_password }
 
   git_clone:
     type: OS::Heat::SoftwareConfig

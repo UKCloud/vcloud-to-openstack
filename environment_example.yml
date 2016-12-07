@@ -8,3 +8,7 @@ parameters:
   vcloud_password: "SuperSecret"
   vcloud_vdc: "My vCloud VDC Name"
   vcloud_url: https://api.vcd.portal.skyscapecloud.com/api
+  os_auth_url: https://cor00005.cni.ukcloud.com:13000/v2.0
+  os_project_name: "MyProject"
+  os_username: "MyUser@example.com"
+  os_password: "SuperSecret"
