@@ -6,10 +6,32 @@
   tasks:
     - include_vars: ~/vmlist.yaml
 
-    # - block:
-    #   - debug: 
-    #       var: item
-    #     with_items: "{{ instances }}"
+    - name: Gather OpenStack facts
+      os_server_facts:
+        server: "{{ ansible_hostname }}"
+
+    - debug:
+        var: openstack_servers
+
+    - name: Create workspace volume
+      os_volume:
+        state: present
+        size: "{{ max_workspace }}"
+        display_name: transferhub-workspace
+        wait: yes
+
+    - name: Attach workspace volume
+      os_server_volume:
+        state: present
+        server: "{{ ansible_hostname }}"
+        volume: transferhub-workspace
+        device: /dev/vdb
+        wait: yes
+
+    - name: Create workspace filesystem
+      filesystem:
+        dev: /dev/vdb
+        fstype: ext4
 
     - name: migrate_instance
       with_items: "{{ instances }}"
