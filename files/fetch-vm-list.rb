@@ -28,6 +28,7 @@ parsed = XmlSimple.xml_in(response.to_str)
 # puts parsed.to_json
 
 vmlist = []
+max_workspace = 0
 
 parsed['VMRecord'].each do |vm|
   begin
@@ -43,6 +44,9 @@ parsed['VMRecord'].each do |vm|
       storage += item['HostResource'][0]['vcloud:capacity'].to_i
     end
   end
+  if storage > max_workspace then
+    max_workspace = storage
+  end
 
   vmlist << { 'vmname' => vm['name'],
                               'vapp' => vm['containerName'],
@@ -51,5 +55,6 @@ parsed['VMRecord'].each do |vm|
                               'storage' => storage } 
 end
 
-variables = { 'instances' => vmlist }
+variables = { 'instances' => vmlist,
+              'max_workspace' => max_workspace }
 puts variables.to_yaml
