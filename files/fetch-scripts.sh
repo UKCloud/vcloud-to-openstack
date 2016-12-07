@@ -2,7 +2,7 @@
 #
 . ~/vcloudrc.sh
 
-yum -y install ruby rubygem ruby-devel gcc gcc-c++ git
+yum -y install ruby rubygems ruby-devel gcc gcc-c++ git
 gem install rest-client
 gem install xml-simple
 
