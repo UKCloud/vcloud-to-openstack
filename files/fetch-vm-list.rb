@@ -5,7 +5,7 @@ require 'xmlsimple'
 require 'yaml'
 
 begin
-  vcloud_session = RestClient::Resource.new("ENV['VCD_URL']/sessions",
+  vcloud_session = RestClient::Resource.new("#{ENV['VCD_URL']}/sessions",
                                              "#{ENV['VCD_USERID']}@#{ENV['VCD_ORG']}",
                                               ENV['VCD_PASSWORD'])
   auth = vcloud_session.post '', :accept => 'application/*+xml;version=5.6'
@@ -15,7 +15,7 @@ rescue => e
 end
 
 begin
-  response = RestClient.get "ENV['VCD_URL']/query",
+  response = RestClient.get "#{ENV['VCD_URL']}/query",
                                 { :params => { :type => 'vm',
                                                :vdc => ENV['VCD_VDC'] },
                                   'x-vcloud-authorization' => auth_token,
