@@ -1,0 +1,10 @@
+parameters:
+  flavor: t1.medium
+  image: vCloudTransfer
+  key_name: MyKeyPair
+  network: Internal
+  vcloud_org: "1-1-11-111111"
+  vcloud_userid: "1234.5.678901"
+  vcloud_password: "SuperSecret"
+  vcloud_vdc: "My vCloud VDC Name"
+  vcloud_url: https://api.vcd.portal.skyscapecloud.com/api

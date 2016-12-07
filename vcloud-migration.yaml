@@ -1,0 +1,145 @@
+heat_template_version: 2015-10-15
+
+description: >
+   This HEAT template creates a VM from a customised CentOS7 image that has 
+   VMWare's OVFTool pre-installed since it's not simple to automate the
+   download from VMware. All other components are installed at deploy time.
+   The VM will query the specified vCloud Director VDC and retrieve a list of
+   VMs. Once editted, the list provides an input to an automated migration
+   process.
+
+parameters:
+  key_name:
+    type: string
+    description: SSH Key Pair
+    constraints:
+      - custom_constraint: nova.keypair
+  flavor:
+    type: string
+    description: Flavor to use for the migration server
+    default: t1.small
+    constraints:
+      - custom_constraint: nova.flavor
+  image:
+    type: string
+    description: Select vCloudTransfer for a CentOS instance with ovftool installed
+    default: "vCloudTransfer"
+    constraints:
+      - custom_constraint: glance.image
+  network:
+    type: string
+    description: Name of the network to create the VM on
+    default: Internal
+    constraints:
+      - custom_constraint: neutron.network
+  vcloud_org:
+    type: string
+    label: vCloud Organisation
+    description: Your vCloud Director organisation
+    constraints:
+      - allowed_pattern: "[0-9]+-[0-9]+-[0-9]+-[a-zA-Z0-9]+"
+  vcloud_userid:
+    type: string
+    label: vCloud UserID
+    description: Your vCloud Director UserID
+    constraints:
+      - allowed_pattern: "[0-9]+.[0-9]+.[0-9]+"
+  vcloud_password:
+    type: string
+    label: vCloud password
+    hidden: true
+    description: Your vCloud Director password
+  vcloud_vdc:
+    type: string
+    label: vCloud VDC
+    description: Your vCloud Director VDC
+  vcloud_url:
+    type: string
+    label: vCloud Direct API URL
+    description: Your vCloud Director API endpoint
+    default: https://api.vcd.portal.skyscapecloud.com/api
+
+resources:
+  ssh_ext_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: ssh_ext_secgroup
+      rules:
+        - protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: icmp
+          remote_ip_prefix: 0.0.0.0/0
+
+
+  migration_server:
+    type: OS::Nova::Server
+    properties:
+      name: transfer01
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key_name }
+      networks:
+        - network: { get_param: network }
+      security_groups:
+        - { get_resource: ssh_ext_secgroup }
+      user_data_format: SOFTWARE_CONFIG
+      user_data: { get_attr: [config_agent, config] }
+
+  # Install, configure and enable the Heat configuration agent
+  config_agent:
+    type: collect-config-setup/install_config_agent_centos_yum.yaml
+
+  vcloud_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      inputs:
+      - name: vcd_org
+      - name: vcd_user
+      - name: vcd_password
+      - name: vcd_vdc
+      - name: vcd_url
+      outputs:
+      - name: result
+      config: { get_file: 'files/vcloudrc.sh' }
+
+  deploy_config:
+    type: OS::Heat::SoftwareDeployment
+    properties:
+      signal_transport: CFN_SIGNAL
+      config:
+        get_resource: vcloud_config
+      server:
+        get_resource: migration_server
+      input_values:
+        vcd_org: { get_param: vcloud_org }
+        vcd_user: { get_param: vcloud_userid }
+        vcd_password: { get_param: vcloud_password }
+        vcd_vdc: { get_param: vcloud_vdc }
+        vcd_url: { get_param: vcloud_url }
+
+  git_clone:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: script
+      inputs:
+      - name: git_url
+      outputs:
+      - name: vmlist
+      config: { get_file: 'files/fetch-scripts.sh' }
+
+  vm_list:
+    type: OS::Heat::SoftwareDeployment
+    depends_on: [ "deploy_config" ]
+    properties:
+      signal_transport: CFN_SIGNAL
+      config:
+        get_resource: git_clone
+      server:
+        get_resource: migration_server
+      input_values:
+        git_url: https://github.com/UKCloud/vcloud-to-openstack.git
+
+
