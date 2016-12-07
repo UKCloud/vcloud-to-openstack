@@ -44,11 +44,11 @@ parsed['VMRecord'].each do |vm|
     end
   end
 
-  vmlist << { vm['name'] => { 'vmname' => vm['name'],
+  vmlist << { 'vmname' => vm['name'],
                               'vapp' => vm['containerName'],
                               'status' => vm['status'],
                               'href' => vm['href'],
-                              'storage' => storage } }
+                              'storage' => storage } 
 end
 
 variables = { 'instances' => vmlist }

@@ -1,0 +1,12 @@
+---
+- name: vCloud Migration to OpenStack
+  hosts: localhost
+  become: false
+
+  tasks:
+    - include_vars: ~/vmlist.yaml
+
+    - block:
+      - debug: 
+          var: item
+        with_items: "{{ instances }}"
