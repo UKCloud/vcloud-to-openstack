@@ -6,7 +6,14 @@
   tasks:
     - include_vars: ~/vmlist.yaml
 
-    - block:
-      - debug: 
-          var: item
-        with_items: "{{ instances }}"
+    # - block:
+    #   - debug: 
+    #       var: item
+    #     with_items: "{{ instances }}"
+
+    - name: migrate_instance
+      with_items: "{{ instances }}"
+      include_role:
+        name: migrate_instance
+      vars:
+        instance: "{{ item }}"
