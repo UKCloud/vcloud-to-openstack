@@ -56,5 +56,5 @@ parsed['VMRecord'].each do |vm|
 end
 
 variables = { 'instances' => vmlist,
-              'max_workspace' => max_workspace }
+              'max_workspace' => max_workspace / 1024 }
 puts variables.to_yaml
