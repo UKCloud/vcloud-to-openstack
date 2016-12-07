@@ -28,10 +28,31 @@
         device: /dev/vdb
         wait: yes
 
+    - name: Label Workspace Disk
+      command: "parted --script /dev/vdb mklabel gpt mkpart primary 1MiB 100%"
+      args:
+        creates: /dev/vdb1
+
+    - name: Create workspace mount point
+      file:
+        state: directory
+        path: /mnt/workspace
+        recurse: true
+        owner: root 
+        group: root
+        mode: 0755
+
     - name: Create workspace filesystem
       filesystem:
-        dev: /dev/vdb
-        fstype: ext4
+        dev: /dev/vdb1
+        fstype: xfs
+
+    - name: Mount workspace filesystem
+      mount:
+        name: /mnt/workspace
+        fstype: xfs
+        src: /dev/vdb1
+        state: mounted
 
     - name: migrate_instance
       with_items: "{{ instances }}"
