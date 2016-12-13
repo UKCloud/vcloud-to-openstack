@@ -4,6 +4,12 @@
 require 'rest-client'
 require 'xmlsimple'
 require 'json'
+require 'getoptlong'
+
+opts = GetoptLong.new(
+  [ '--list', '-l', GetoptLong::NO_ARGUMENT ],
+  [ '--host', '-h', GetoptLong::REQUIRED_ARGUMENT ]
+)
 
 begin
   vcloud_session = RestClient::Resource.new("#{ENV['VCD_URL']}/sessions",
@@ -26,9 +32,9 @@ rescue => e
   puts e.response
 end
 
-inventory = {}
+inventory = { '_meta' => { 'hostvars' => {} }}
 vapp_list = []
-vm_list = []
+vm_vars = {}
 
 parsed['VAppRecord'].each do |vapp|
   begin
@@ -43,15 +49,26 @@ parsed['VAppRecord'].each do |vapp|
   vapp_vms = []
   vapp_details['Children'][0]['Vm'].each do |vm|
     if vm['deployed'] == 'true' && vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IsConnected'][0] == 'true' then
-      ansible_inventory = "%s ansible_host='%s'" % [vm['name'], vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IpAddress'][0]]
-      vapp_vms << ansible_inventory
-      vm_list << ansible_inventory
+      vapp_vms << vm['name']
+      vm_vars[vm['name']] = { 'ansible_host' => vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IpAddress'][0] }
     end
   end
 
   inventory[vapp_details['name']] = { 'hosts' => vapp_vms }
 end
 
-inventory['vcloud_vms:children'] = { 'hosts' => vapp_list }
+inventory['vcloud_vms'] = { 'children' => vapp_list }
+inventory['_meta'] = { 'hostvars' => vm_vars }
 
-puts inventory.to_json
+opts.each do |opt, arg|
+  case opt
+    when '--list'
+      puts inventory.to_json
+
+    when '--host'
+      host = arg
+      host_vars = vm_vars[host] 
+      puts host_vars.to_json
+  end
+end
+
