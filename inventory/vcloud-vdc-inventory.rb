@@ -32,7 +32,7 @@ rescue => e
   puts e.response
 end
 
-inventory = { '_meta' => { 'hostvars' => {} }}
+inventory = {}
 vapp_list = []
 vm_vars = {}
 
@@ -62,13 +62,13 @@ inventory['_meta'] = { 'hostvars' => vm_vars }
 
 opts.each do |opt, arg|
   case opt
-    when '--list'
-      puts inventory.to_json
+  when '--list'
+    puts inventory.to_json
 
-    when '--host'
-      host = arg
-      host_vars = vm_vars[host] 
-      puts host_vars.to_json
+  when '--host'
+    host = arg
+    host_vars = vm_vars[host]
+    puts host_vars.to_json
   end
 end
 
