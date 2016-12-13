@@ -35,6 +35,7 @@ end
 inventory = {}
 vapp_list = []
 vm_vars = {}
+windows_vms = []
 
 parsed['VAppRecord'].each do |vapp|
   begin
@@ -50,7 +51,9 @@ parsed['VAppRecord'].each do |vapp|
   vapp_details['Children'][0]['Vm'].each do |vm|
     if vm['deployed'] == 'true' && vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IsConnected'][0] == 'true' then
       vapp_vms << vm['name']
-      vm_vars[vm['name']] = { 'ansible_host' => vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IpAddress'][0] }
+      windows_vms << vm['name'] if vm['OperatingSystemSection'][0]['Description'][0] =~ /Windows/
+      vm_vars[vm['name']] = { 'ansible_host' => vm['NetworkConnectionSection'][0]['NetworkConnection'][0]['IpAddress'][0],
+                              'operating_system' => vm['OperatingSystemSection'][0]['Description'][0] }
     end
   end
 
@@ -59,6 +62,8 @@ end
 
 inventory['vcloud_vms'] = { 'children' => vapp_list }
 inventory['_meta'] = { 'hostvars' => vm_vars }
+inventory['windows_vms'] = { 'hosts' => windows_vms,
+                             'vars' => { 'ansible_connection' => 'winrm' }}
 
 opts.each do |opt, arg|
   case opt
