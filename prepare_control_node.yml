@@ -1,0 +1,55 @@
+---
+- name: Prepare the Migration Control Node for running playbooks
+  hosts: localhost
+  become: false
+
+  tasks:
+    - name: Add EPEL Repository
+      become: true
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install pre-req packages
+      become: true
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - gcc
+        - python-devel
+        - libffi-devel
+        - openssl-devel
+        - ruby
+        - rubygems
+        - ruby-devel
+        - gcc-c++
+        - git
+        - krb5-devel
+        - krb5-libs
+        - krb5-workstation
+        - python-pip
+        - python-xmltodict
+        - rubygem-rest-client
+        - python-kerberos
+        - python-requests-kerberos
+    
+    - name: Install python libraries
+      become: true
+      pip:
+        name: "{{ item }}"
+      with_items:
+        - shade
+        - python-openstackclient
+        - pywinrm
+
+    - name: Install Ruby Gems
+      become: true
+      gem:
+        name: "{{ item }}"
+        state: latest
+        user_install: no
+        include_doc: no
+      with_items:
+        - xml-simple
+      
