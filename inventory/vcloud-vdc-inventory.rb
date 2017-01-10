@@ -37,6 +37,8 @@ vapp_list = []
 vm_vars = {}
 windows_vms = []
 centos_vms = []
+ubuntu_vms = []
+rhel_vms = []
 
 parsed['VAppRecord'].each do |vapp|
   begin
@@ -55,6 +57,8 @@ parsed['VAppRecord'].each do |vapp|
       vapp_vms << vm['name']
       windows_vms << vm['name'] if vm['OperatingSystemSection'][0]['Description'][0] =~ /Windows/
       centos_vms << vm['name'] if vm['OperatingSystemSection'][0]['Description'][0] =~ /CentOS/
+      ubuntu_vms << vm['name'] if vm['OperatingSystemSection'][0]['Description'][0] =~ /Ubuntu/
+      rhel_vms << vm['name'] if vm['OperatingSystemSection'][0]['Description'][0] =~ /Red Hat Enterprise Linux/
 
       storage = 0
       vm['VirtualHardwareSection'][0]['Item'].each do |item|
@@ -78,6 +82,8 @@ inventory['_meta'] = { 'hostvars' => vm_vars }
 inventory['windows_vms'] = { 'hosts' => windows_vms,
                              'vars' => { 'ansible_connection' => 'winrm' }}
 inventory['centos_vms'] = { 'hosts' => centos_vms }
+inventory['ubuntu_vms'] = { 'hosts' => ubuntu_vms }
+inventory['rhel_vms'] = { 'hosts' => rhel_vms }
 
 opts.each do |opt, arg|
   case opt

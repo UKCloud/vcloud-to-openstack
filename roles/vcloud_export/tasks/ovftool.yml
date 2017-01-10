@@ -1,0 +1,11 @@
+---
+
+- set_fact:
+    workspace_path: "/mnt/workspace/{{ vapp }}"
+    vcd_user: "{{ lookup('env','VCD_USERID') }}"
+    vcd_org: "{{ lookup('env','VCD_ORG') }}"
+    vcd_password: "{{ lookup('env','VCD_PASSWORD') }}"
+    vcd_host: "{{ lookup('env','VCD_URL') | regex_replace('^https://(.*)/api$', '\\1') }}"
+
+# - name: Export using ovftool
+#   command: ovftool "vcloud://{{ vcd_user }}:{{ vcd_password }}@{{ vcd_host }}?org={{ vcd_org }}&vapp={{ vapp }}" {{ workspace_path }}

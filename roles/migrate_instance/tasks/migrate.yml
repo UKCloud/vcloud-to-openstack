@@ -1,0 +1,7 @@
+---
+
+- name: Export from vCloud
+  command: ""
+  args:
+    chdir: "{{ workspace_path }}"
+    creates: "{{ workspace_path }}/{{ inventory_hostname }}"

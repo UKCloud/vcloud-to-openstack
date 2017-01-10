@@ -1,0 +1,4 @@
+---
+# tasks file for vcloud_export
+
+- include: ovftool.yml

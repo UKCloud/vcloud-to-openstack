@@ -1,0 +1,34 @@
+---
+
+# Ensure ACPI is installed so that the hypervisor can reboot / shutdown instances
+- name: Install ACPI
+  yum:
+    name: acpid
+    state: present
+
+- name: Start ACPI Service
+  service:
+    name: acpid
+    state: started
+    enabled: yes
+
+# Install cloud-init package for fetching meta-data and public keys
+- name: Setup EPEL Repository
+  yum:
+    name: epel-release
+    state: present
+  when:
+    - ansible_distribution == "CentOS"
+
+- name: Install cloud-init
+  yum:
+    name: cloud-init
+    state: present
+
+- name: Copy the cloud-init configuration file
+  copy:
+    src: cloud.cfg
+    dest: /etc/cloud/cloud.cfg
+    mode: 0664
+    owner: root
+    group: root

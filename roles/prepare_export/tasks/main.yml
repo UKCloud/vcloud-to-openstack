@@ -2,3 +2,7 @@
 # tasks file for prepare_export
 
 - include: initramfs.yml
+
+- include: install_software.yml
+
+- include: openstack_configuration.yml

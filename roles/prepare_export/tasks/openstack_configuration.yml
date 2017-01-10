@@ -1,0 +1,34 @@
+---
+
+# For the instance to access the metadata service, you must disable the default zeroconf route
+- name: Disable the zeroconf route
+  lineinfile:
+    dest: /etc/sysconfig/network
+    regexp: '^NOZEROCONF='
+    line: 'NOZEROCONF=yes'
+
+- name: Configure the Console 
+  lineinfile:
+    dest: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX="(.*)rhgb quiet(.*)"$'
+    line: 'GRUB_CMDLINE_LINUX="\1console=tty0 console=ttyS0,115200n8\2"'
+    backrefs: yes
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version == "7"
+
+- name: Check existing grub configuration
+  shell: "grep -c console=tty0 /boot/grub2/grub.cfg"
+  register: grub
+  ignore_errors: true
+  when: 
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version == "7"
+
+- name: Rebuild grub configuration
+  command: "grub2-mkconfig -o /boot/grub2/grub.cfg"
+  when: 
+    - ansible_os_family == "RedHat"
+    - ansible_distribution_major_version == "7"
+    - grub['stdout'] == "0"
+        

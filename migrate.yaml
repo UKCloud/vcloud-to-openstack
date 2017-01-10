@@ -18,6 +18,13 @@
   roles:
     - prepare_export
 
+- name: vCloud Migration - vCloud Director Export
+  hosts: migrate_vapps
+  become: false
+  serial: 1
+  roles:
+    - vcloud_export
+
     # - name: migrate_instance
     #   with_items: "{{ instances }}"
     #   include_role:
