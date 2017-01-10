@@ -1,5 +1,6 @@
+---
 #
 # Uncomment the following line and update the user@gateway.example.com to
 # allow access to your vCloud VMs via a bastion / jump server.
 #
-#ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q user@gateway.example.com"'
+#ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q -i ~/.ssh/user.pem user@gateway.example.com"'

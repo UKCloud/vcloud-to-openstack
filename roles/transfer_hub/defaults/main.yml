@@ -1,0 +1,9 @@
+---
+# defaults file for transfer_hub
+
+transfer_image: vCloudTransfer
+transfer_flavor: t1.small
+transfer_keypair: RobC
+transfer_private_key_file: ~/.ssh/rcoward.pem
+transfer_user: centos
+os_external_network: internet

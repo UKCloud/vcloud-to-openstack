@@ -1,0 +1,8 @@
+---
+# tasks file for transfer_hub
+
+- name: Infrastruture Build
+  include: infrastructure.yml
+
+- name: Transfer Hub Build
+  include: transfer_hub.yml

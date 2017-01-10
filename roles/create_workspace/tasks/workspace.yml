@@ -1,0 +1,75 @@
+---
+- set_fact:
+    volume_name: "transfer-{{ vapp }}"
+
+- name: Create workspace volume
+  delegate_to: localhost
+  os_volume:
+    state: present
+    size: "{{ vapp_storage }}"
+    display_name: "{{ volume_name }}"
+    wait: yes
+
+- name: Attach workspace volume
+  delegate_to: localhost
+  os_server_volume:
+    state: present
+    server: "{{ hostvars['localhost']['transferhub_server'] }}"
+    volume: "{{ volume_name }}"
+    wait: yes
+
+# Use the os_volume module again to get the device attachment path. Although the
+# os_server_volume module gives you the device when first attached, subsequent
+# runs of the playbook do not get the attachment information. Obviously on the 
+# initial run, we need to use the os_volume module twice to get the device path 
+# as on initial creation the volume is not attached.
+- name: Get workspace volume attachment details
+  delegate_to: localhost
+  os_volume:
+    state: present
+    size: "{{ vapp_storage }}"
+    display_name: "{{ volume_name }}"
+    wait: yes
+  register: workspace
+
+# - debug:
+#     var: workspace
+
+- set_fact:
+    device_path: "{{workspace.volume.attachments[0].device}}"
+    partition_path: "{{workspace.volume.attachments[0].device}}1"
+    workspace_path: "/mnt/workspace/{{ vapp }}"
+
+- name: Label Workspace Disk
+  delegate_to: transferhub
+  become: true
+  command: "parted --script {{ device_path }} mklabel gpt mkpart primary 1MiB 100%"
+  args:
+    creates: "{{ partition_path }}"
+
+- name: Create workspace mount point
+  delegate_to: transferhub
+  become: true
+  file:
+    state: directory
+    path: "{{ workspace_path }}"
+    recurse: true
+    owner: root 
+    group: root
+    mode: 0755
+
+- name: Create workspace filesystem
+  delegate_to: transferhub
+  become: true
+  filesystem:
+    dev: "{{ partition_path }}"
+    fstype: xfs
+
+- name: Mount workspace filesystem
+  delegate_to: transferhub
+  become: true
+  mount:
+    name: "{{ workspace_path }}"
+    fstype: xfs
+    src: "{{ partition_path }}"
+    state: mounted

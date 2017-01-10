@@ -1,0 +1,28 @@
+---
+
+- name: Create dracut configuration directory
+  file:
+    path: /etc/dracut.conf.d
+    state: directory
+    recurse: true
+    mode: 0755
+
+- name: Copy dracut configuration for virtio drivers
+  copy:
+    src: dracut-openstack.conf
+    dest: /etc/dracut.conf.d/openstack.conf
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Check existing initramfs
+  shell: "lsinitrd | grep -c virtio"
+  register: virtio_drivers
+  ignore_errors: true
+
+# - debug:
+#     var: virtio_drivers
+
+- name: Rebuild initramfs with virtio drivers
+  command: "dracut -v --force"
+  when: ( virtio_drivers['stdout'] == "0" )

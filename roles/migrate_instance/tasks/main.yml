@@ -1,5 +1,5 @@
 ---
 # tasks file for migrate_instance
 
-- debug:
-    var: instance
+- name: Export / Import VM images
+  include: migrate.yml

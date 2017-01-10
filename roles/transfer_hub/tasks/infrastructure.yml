@@ -1,0 +1,30 @@
+---
+
+- name: Create the temporary network for the transfer server
+  delegate_to: localhost
+  run_once: true
+  os_network:
+    name: TransferNetwork
+    state: present
+
+- name: Create the temporary subnet for the transfer server
+  delegate_to: localhost
+  run_once: true
+  os_subnet:
+    name: TransferSubnet
+    network_name: TransferNetwork
+    state: present
+    cidr: 172.16.1.0/24
+    dns_nameservers:
+      - 8.8.8.8
+      - 8.8.4.4
+
+- name: Create the vShield Edge replacement router
+  delegate_to: localhost
+  run_once: true
+  os_router:
+    state: present
+    name: vShieldEdge
+    network: "{{ os_external_network }}"
+    interfaces:
+      - TransferSubnet

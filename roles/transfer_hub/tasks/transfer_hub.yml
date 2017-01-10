@@ -1,0 +1,56 @@
+---
+
+- name: Transfer Hub Security Group
+  delegate_to: localhost
+  run_once: true
+  os_security_group:
+    name: transfers_ext_ssh
+    state: present
+    description: Access to the Transfer Hub Server
+
+- name: Transfer Hub Security Group Rules - SSH
+  delegate_to: localhost
+  run_once: true
+  os_security_group_rule:
+    security_group: transfers_ext_ssh
+    protocol: tcp
+    port_range_min: 22
+    port_range_max: 22
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: Transfer Hub Security Group Rules - ICMP
+  delegate_to: localhost
+  run_once: true
+  os_security_group_rule:
+    security_group: transfers_ext_ssh
+    protocol: icmp
+    remote_ip_prefix: 0.0.0.0/0
+
+- name: Provision Transfer Hub Server
+  delegate_to: localhost
+  run_once: true
+  os_server:
+    state: present
+    name: transferhub01
+    image: "{{ transfer_image }}"
+    key_name: "{{ transfer_keypair }}"
+    flavor: "{{ transfer_flavor }}"
+    security_groups: transfers_ext_ssh
+    nics:
+      - net-name: TransferNetwork
+    auto_ip: yes
+  register: transferhub
+
+# - debug:
+#     var: transferhub
+
+- name: Add Transfer Hub Server to Inventory
+  run_once: true
+  add_host:
+    name: transferhub
+    ansible_ssh_host: "{{ transferhub.openstack.accessIPv4 }}"
+    ansible_ssh_user: "{{ transfer_user }}"
+    ansible_ssh_private_key_file: "{{ transfer_private_key_file }}"
+
+- set_fact:
+    transferhub_server: "{{ transferhub.openstack.name }}"

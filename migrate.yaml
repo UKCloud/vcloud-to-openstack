@@ -1,87 +1,26 @@
 ---
-- name: vCloud Migration to OpenStack
+- name: vCloud Migration - Create Transfer Hub
   hosts: localhost
   become: false
+  roles:
+    - transfer_hub
 
-  tasks:
-    - include_vars: ~/vmlist.yaml
+- name: vCloud Migration - Create Workspaces
+  hosts: migrate_vapps
+  become: false
+  serial: 1
+  roles:
+    - create_workspace
 
-    - name: Install python-pip
-      become: true
-      yum:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - epel-release
-        - python-pip
+- name: vCloud Migration - Prepare VMs for export
+  hosts: migrate_vapps
+  become: true
+  roles:
+    - prepare_export
 
-    - name: Install python-shade pre-reqs
-      become: true
-      yum:
-        name: "{{ item }}"
-        state: present
-      with_items:
-        - gcc
-        - python-devel
-        - libffi-devel
-        - openssl-devel
-
-    - name: Install python-shade
-      become: true
-      pip:
-        name: shade
-
-    - name: Gather OpenStack facts
-      os_server_facts:
-        server: "{{ ansible_hostname }}"
-
-    - debug:
-        var: openstack_servers
-
-    - name: Create workspace volume
-      os_volume:
-        state: present
-        size: "{{ max_workspace }}"
-        display_name: transferhub-workspace
-        wait: yes
-
-    - name: Attach workspace volume
-      os_server_volume:
-        state: present
-        server: "{{ ansible_hostname }}"
-        volume: transferhub-workspace
-        device: /dev/vdb
-        wait: yes
-
-    - name: Label Workspace Disk
-      command: "parted --script /dev/vdb mklabel gpt mkpart primary 1MiB 100%"
-      args:
-        creates: /dev/vdb1
-
-    - name: Create workspace mount point
-      file:
-        state: directory
-        path: /mnt/workspace
-        recurse: true
-        owner: root 
-        group: root
-        mode: 0755
-
-    - name: Create workspace filesystem
-      filesystem:
-        dev: /dev/vdb1
-        fstype: xfs
-
-    - name: Mount workspace filesystem
-      mount:
-        name: /mnt/workspace
-        fstype: xfs
-        src: /dev/vdb1
-        state: mounted
-
-    - name: migrate_instance
-      with_items: "{{ instances }}"
-      include_role:
-        name: migrate_instance
-      vars:
-        instance: "{{ item }}"
+    # - name: migrate_instance
+    #   with_items: "{{ instances }}"
+    #   include_role:
+    #     name: migrate_instance
+    #   vars:
+    #     instance: "{{ item }}"
