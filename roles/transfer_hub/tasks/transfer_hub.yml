@@ -54,3 +54,12 @@
 
 - set_fact:
     transferhub_server: "{{ transferhub.openstack.name }}"
+
+# - name:  Install packages
+#   delegate_to: transferhub
+#   become: true
+#   yum:
+#     name: "{{ item }}"
+#     state: installed
+#   with_items:
+#     - curl

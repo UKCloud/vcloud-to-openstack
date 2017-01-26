@@ -1,0 +1,6 @@
+---
+- name: vCloud Migration - Prepare Instances
+  hosts: migrate_vapps
+  become: false
+  roles:
+    - prepare_export

@@ -1,2 +1,4 @@
 ---
 # defaults file for vcloud_export
+vapp_name: ''
+vapp_href: ''

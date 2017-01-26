@@ -12,14 +12,6 @@
     state: started
     enabled: yes
 
-# Install cloud-init package for fetching meta-data and public keys
-- name: Setup EPEL Repository
-  yum:
-    name: epel-release
-    state: present
-  when:
-    - ansible_distribution == "CentOS"
-
 - name: Install cloud-init
   yum:
     name: cloud-init

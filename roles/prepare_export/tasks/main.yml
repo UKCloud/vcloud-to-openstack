@@ -1,8 +1,4 @@
 ---
 # tasks file for prepare_export
 
-- include: initramfs.yml
-
-- include: install_software.yml
-
-- include: openstack_configuration.yml
+- include: "prep-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"

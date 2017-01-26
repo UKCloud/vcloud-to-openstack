@@ -1,11 +1,56 @@
 ---
 
-- set_fact:
-    workspace_path: "/mnt/workspace/{{ vapp }}"
+- name: Set OVFTOOL Credentials
+  set_fact:
     vcd_user: "{{ lookup('env','VCD_USERID') }}"
     vcd_org: "{{ lookup('env','VCD_ORG') }}"
     vcd_password: "{{ lookup('env','VCD_PASSWORD') }}"
     vcd_host: "{{ lookup('env','VCD_URL') | regex_replace('^https://(.*)/api$', '\\1') }}"
+  no_log: true
 
-# - name: Export using ovftool
-#   command: ovftool "vcloud://{{ vcd_user }}:{{ vcd_password }}@{{ vcd_host }}?org={{ vcd_org }}&vapp={{ vapp }}" {{ workspace_path }}
+- name: vCloud Authentication
+  uri:
+    url: "https://{{ vcd_host }}/api/sessions"
+    method: POST
+    user: "{{ vcd_user }}@{{ vcd_org }}"
+    password: "{{ vcd_password }}"
+    HEADER_Accept: "application/*+xml;version=5.6"
+  register: vcd_auth
+
+- name: "Stop vApp {{ vapp_name }}"
+  uri:
+    url: "{{ vapp_href }}/action/undeploy"
+    method: POST
+    body_format: raw
+    body: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><UndeployVAppParams xmlns=\"http://www.vmware.com/vcloud/v1.5\"><UndeployPowerAction>powerOff</UndeployPowerAction></UndeployVAppParams>"
+    status_code: 202
+    HEADER_Accept: "application/*+xml;version=5.6"
+    HEADER_Content-type: "application/vnd.vmware.vcloud.undeployVAppParams+xml"
+    HEADER_x-vcloud-authorization: "{{ vcd_auth['x_vcloud_authorization'] }}"
+  register: vapp_stop
+    
+- name: Wait for {{ vapp_name }} stop task
+  uri:
+    url: "{{ vapp_stop['location'] }}"
+    method: GET
+    return_content: yes
+    HEADER_Accept: "application/*+xml;version=5.6"
+    HEADER_x-vcloud-authorization: "{{ vcd_auth['x_vcloud_authorization'] }}"
+  register: vapp_stop_task
+  until: vapp_stop_task['content'].find("status=\"running\"") == -1
+  retries: 5
+  delay: 10
+
+- name: Export {{ vapp_name }} using ovftool
+  delegate_to: transferhub
+  become: true
+  shell: ovftool "vcloud://$VCD_USER:$VCD_PASSWORD@$VCD_HOST?org=$VCD_ORG&vapp={{ vapp_name }}" /mnt/workspace/{{ vapp_name }}/{{ vapp_name }}.ovf
+  args:
+    chdir: "/mnt/workspace/{{ vapp_name }}"
+    creates: "/mnt/workspace/{{ vapp_name }}/{{ vapp_name }}.ovf"
+  environment:
+    VCD_USER: "{{ vcd_user }}"
+    VCD_PASSWORD: "{{ vcd_password }}"
+    VCD_ORG: "{{ vcd_org }}"
+    VCD_HOST: "{{ vcd_host }}"
+  

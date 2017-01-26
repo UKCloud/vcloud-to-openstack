@@ -1,0 +1,34 @@
+---
+- name: vCloud Migration - Create Transfer Hub
+  hosts: localhost
+  become: false
+  tasks:
+
+    - name: Fail if vApps are not powered on
+      fail:
+        msg: "There doesn't appear to be any powered on vApps in the 'migrate_vapps' host group"
+      when: hostvars|to_group_vars(groups, 'migrate_vapps')|length == 0
+
+    - name: Create Transfer Hub Instance
+      include_role:
+        name: transfer_hub
+
+    - name: Build vApp list
+      set_fact:
+        vapp_list: "{{hostvars|to_group_vars(groups, 'migrate_vapps')|map(attribute='vapp')|list|unique }}"
+
+    - name: Create Workspaces
+      include_role: 
+        name: create_workspace
+      vars:
+        vapp_name: "{{ item }}"
+        vapp_size: "{{ hostvars[groups[item][0]]['vapp_storage'] }}"
+      with_items: "{{ vapp_list }}"
+
+    - name: Export vApps
+      include_role:
+        name: vcloud_export
+      vars:
+        vapp_name: "{{ item }}"
+        vapp_href: "{{ hostvars[groups[item][0]]['vapp_href'] }}"
+      with_items: "{{ vapp_list }}"

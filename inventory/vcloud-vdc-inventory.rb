@@ -70,7 +70,8 @@ parsed['VAppRecord'].each do |vapp|
                               'operating_system' => vm['OperatingSystemSection'][0]['Description'][0],
                               'storageGB' => (storage / 1024),
                               'vapp' => vapp_details['name'],
-                              'vapp_storage' => (vapp['storageKB'].to_i / 1024 / 1024) }
+                              'vapp_storage' => (vapp['storageKB'].to_i / 1024 / 1024),
+                              'vapp_href' => vapp['href'] }
     end
   end
 

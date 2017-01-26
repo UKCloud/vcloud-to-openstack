@@ -1,11 +1,4 @@
 ---
 # tasks file for create_workspace
 
-# Check the VM is using a supported OS
-- name: Check OS Support for migration
-  fail:
-    msg: "Migration of {{ ansible_distribution }} v{{ ansible_distribution_major_version }} instances is not supported at this time."
-  when: ansible_distribution == "Ubuntu" or
-        ( ansible_distribution == "CentOS" and ansible_distribution_major_version == "6" )
-
 - include: workspace.yml

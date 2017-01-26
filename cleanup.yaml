@@ -1,0 +1,8 @@
+---
+- name: vCloud Migration - Cleanup Transfer Hub
+  hosts: migrate_vapps
+  become: false
+  serial: 1
+  roles:
+    - cleanup_transfer_hub
+

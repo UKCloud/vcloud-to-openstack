@@ -1,0 +1,8 @@
+---
+# tasks file for cleanup_transfer_hub
+
+- include: workspaces.yml
+
+- include: transfer_hub.yml
+
+- include: infrastructure.yml

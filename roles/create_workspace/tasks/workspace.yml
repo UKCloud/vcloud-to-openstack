@@ -1,17 +1,19 @@
 ---
 - set_fact:
-    volume_name: "transfer-{{ vapp }}"
+    volume_name: "transfer-{{ vapp_name }}"
 
 - name: Create workspace volume
   delegate_to: localhost
+  run_once: true
   os_volume:
     state: present
-    size: "{{ vapp_storage }}"
+    size: "{{ vapp_size }}"
     display_name: "{{ volume_name }}"
     wait: yes
 
 - name: Attach workspace volume
   delegate_to: localhost
+  run_once: true
   os_server_volume:
     state: present
     server: "{{ hostvars['localhost']['transferhub_server'] }}"
@@ -25,9 +27,10 @@
 # as on initial creation the volume is not attached.
 - name: Get workspace volume attachment details
   delegate_to: localhost
+  run_once: true
   os_volume:
     state: present
-    size: "{{ vapp_storage }}"
+    size: "{{ vapp_size }}"
     display_name: "{{ volume_name }}"
     wait: yes
   register: workspace
@@ -38,10 +41,11 @@
 - set_fact:
     device_path: "{{workspace.volume.attachments[0].device}}"
     partition_path: "{{workspace.volume.attachments[0].device}}1"
-    workspace_path: "/mnt/workspace/{{ vapp }}"
+    workspace_path: "/mnt/workspace/{{ vapp_name }}"
 
 - name: Label Workspace Disk
   delegate_to: transferhub
+  run_once: true
   become: true
   command: "parted --script {{ device_path }} mklabel gpt mkpart primary 1MiB 100%"
   args:
@@ -49,6 +53,7 @@
 
 - name: Create workspace mount point
   delegate_to: transferhub
+  run_once: true
   become: true
   file:
     state: directory
@@ -60,6 +65,7 @@
 
 - name: Create workspace filesystem
   delegate_to: transferhub
+  run_once: true
   become: true
   filesystem:
     dev: "{{ partition_path }}"
@@ -67,6 +73,7 @@
 
 - name: Mount workspace filesystem
   delegate_to: transferhub
+  run_once: true
   become: true
   mount:
     name: "{{ workspace_path }}"

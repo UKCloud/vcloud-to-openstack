@@ -1,0 +1,12 @@
+---
+
+- name: Setup EPEL Repository
+  yum:
+    name: epel-release
+    state: present
+
+- include: initramfs.yml
+
+- include: install_software.yml
+
+- include: openstack_configuration.yml

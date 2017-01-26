@@ -1,2 +1,4 @@
 ---
 # defaults file for create_workspace
+vapp_name: ''
+vapp_storage:  0

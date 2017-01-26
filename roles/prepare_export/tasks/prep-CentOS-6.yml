@@ -1,0 +1,16 @@
+---
+
+- name: "Install cloud-init dependency packages"
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python
+    - python-libs
+    - openssl
+
+- include: initramfs.yml
+
+- include: install_software.yml
+
+- include: openstack_configuration.yml

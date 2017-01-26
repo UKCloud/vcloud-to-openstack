@@ -1,0 +1,46 @@
+---
+
+- set_fact:
+    volume_name: "transfer-{{ vapp }}"
+
+- name: Get workspace volume attachment details
+  delegate_to: localhost
+  os_volume:
+    state: present
+    size: "{{ vapp_storage }}"
+    display_name: "{{ volume_name }}"
+    wait: yes
+  register: workspace
+
+- debug:
+    var: workspace
+
+- set_fact:
+    device_path: "{{workspace.volume.attachments[0].device}}"
+    partition_path: "{{workspace.volume.attachments[0].device}}1"
+    workspace_path: "/mnt/workspace/{{ vapp }}"
+
+- name: Unmount workspace filesystem
+  delegate_to: transferhub
+  become: true
+  mount:
+    name: "{{ workspace_path }}"
+    fstype: xfs
+    src: "{{ partition_path }}"
+    state: unmounted
+
+- name: Dettach workspace volume
+  delegate_to: localhost
+  os_server_volume:
+    state: absent
+    server: "{{ hostvars['localhost']['transferhub_server'] }}"
+    volume: "{{ volume_name }}"
+    wait: yes
+
+- name: Destroy workspace volume
+  delegate_to: localhost
+  os_volume:
+    state: absent
+    size: "{{ vapp_storage }}"
+    display_name: "{{ volume_name }}"
+    wait: yes
